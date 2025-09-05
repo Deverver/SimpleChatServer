@@ -37,9 +37,14 @@ public class ServerClientHandler extends Thread {
             out.println("Please enter username: ");
             name = in.readLine();
 
-            out.println("User: "+ name + " has connected to the server");
+            out.println("User [" + name + "] has connected to the server");
+            out.println("You can now send Commands");
+            for (String command : commandsList) {
+                out.println("Command: "+ command);
+            }
 
             while (socket.isConnected()) {
+                System.out.println("hello world");
                 /*
                 while (latestRead != chatHandler.indexOfChat()) {
                     chatHandler.updateChat(latestRead);
@@ -48,7 +53,6 @@ public class ServerClientHandler extends Thread {
                     }
                 }
                 */
-                out.println("you can now send stuff....");
 
                 String rawClientInput;
                 while ((rawClientInput = in.readLine()) != null) {
@@ -59,8 +63,16 @@ public class ServerClientHandler extends Thread {
                         switch (clientInput) {
                             case ("/EXIT"):
                                 try {
+                                    System.out.println("Hello");
                                     socket.close();
                                 } catch (IOException ignore) {
+                                }
+                                break;
+
+                            case ("/HELP"):
+                                try {
+                                    out.println(commandsList.toString());
+                                } catch (Exception ignore) {
                                 }
                                 break;
 
@@ -86,7 +98,7 @@ public class ServerClientHandler extends Thread {
                 }
             }
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Error connection has been closed: " + ex.getMessage());
         } finally {
             try {
                 socket.close();
