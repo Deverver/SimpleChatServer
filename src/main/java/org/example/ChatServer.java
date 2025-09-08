@@ -11,8 +11,7 @@ public class ChatServer {
     public static void main(String[] args) {
 
         System.out.println("[Server Booting]");
-        try(ServerSocket serverSocket = new ServerSocket(PORT);
-
+        try(ServerSocket serverSocket = new ServerSocket(PORT)
         ){
 
             ChatHandler chatHandler = new ChatHandler();

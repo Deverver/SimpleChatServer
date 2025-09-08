@@ -3,9 +3,7 @@ package org.example;
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 
 public class ServerClientHandler extends Thread {
@@ -16,7 +14,7 @@ public class ServerClientHandler extends Thread {
             "/SEND"
     );
 
-    private String name;
+    private String clientName;
 
     ServerClientHandler(Socket socket, ChatHandler chatHandler) {
         super("Client-" + socket.getRemoteSocketAddress());
@@ -35,24 +33,13 @@ public class ServerClientHandler extends Thread {
             out.println(chatHandler.getChatHistory());
             int latestRead = chatHandler.indexOfChat();
             out.println("Please enter username: ");
-            name = in.readLine();
+            clientName = in.readLine();
 
-            out.println("User [" + name + "] has connected to the server");
+            out.println("User [" + clientName + "] has connected to the server");
             out.println("You can now send Commands");
             for (String command : commandsList) {
                 out.println("Command: "+ command);
             }
-
-            while (socket.isConnected()) {
-                System.out.println("hello world");
-                /*
-                while (latestRead != chatHandler.indexOfChat()) {
-                    chatHandler.updateChat(latestRead);
-                    if (latestRead == chatHandler.indexOfChat()) {
-                        break;
-                    }
-                }
-                */
 
                 String rawClientInput;
                 while ((rawClientInput = in.readLine()) != null) {
@@ -80,7 +67,7 @@ public class ServerClientHandler extends Thread {
                                 try {
                                     out.println("Ready to receive message");
                                     String clientMessage = in.readLine();
-                                    chatHandler.receiveMessage(name + ": " + clientMessage + "\n" + "send at: " + LocalDateTime.now());
+                                    chatHandler.receiveMessage(clientName + ": " + clientMessage + "\n" + "send at: " + LocalDateTime.now());
                                     out.println(chatHandler.updateChat(latestRead));
                                     latestRead = chatHandler.indexOfChat();
 
@@ -94,9 +81,8 @@ public class ServerClientHandler extends Thread {
                     } else {
                         out.println("Error: " + rawClientInput + " is not a valid command");
                     }
-
                 }
-            }
+
         } catch (IOException ex) {
             System.out.println("Error connection has been closed: " + ex.getMessage());
         } finally {
