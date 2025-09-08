@@ -26,23 +26,24 @@ public class ServerClientHandler extends Thread {
     @Override
     public void run() {
         try (
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)
+                BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                OutputStream output = socket.getOutputStream();
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output), true)
         ) {
-            out.println("Welcome to the chat service!");
-            out.println(chatHandler.getChatHistory());
+            writer.println("Welcome to the chat service!");
+            writer.println(chatHandler.getChatHistory());
             int latestRead = chatHandler.indexOfChat();
-            out.println("Please enter username: ");
-            clientName = in.readLine();
+            writer.println("Please enter username: ");
+            clientName = input.readLine();
 
-            out.println("User [" + clientName + "] has connected to the server");
-            out.println("You can now send Commands");
+            writer.println("User [" + clientName + "] has connected to the server");
+            writer.println("You can now send Commands");
             for (String command : commandsList) {
-                out.println("Command: "+ command);
+                writer.println("Command: "+ command);
             }
 
                 String rawClientInput;
-                while ((rawClientInput = in.readLine()) != null) {
+                while ((rawClientInput = input.readLine()) != null) {
                     String clientInput = rawClientInput.toUpperCase().trim();
 
                     if (clientInput.length() > 0 && clientInput.length() < 255) {
@@ -58,28 +59,39 @@ public class ServerClientHandler extends Thread {
 
                             case ("/HELP"):
                                 try {
-                                    out.println(commandsList.toString());
+                                    writer.println(commandsList.toString());
                                 } catch (Exception ignore) {
                                 }
                                 break;
 
                             case ("/SEND"):
                                 try {
-                                    out.println("Ready to receive message");
-                                    String clientMessage = in.readLine();
+                                    writer.println("Ready to receive message");
+                                    String clientMessage = input.readLine();
                                     chatHandler.receiveMessage(clientName + ": " + clientMessage + "\n" + "send at: " + LocalDateTime.now());
-                                    out.println(chatHandler.updateChat(latestRead));
+                                    writer.println(chatHandler.updateChat(latestRead));
                                     latestRead = chatHandler.indexOfChat();
 
                                 } catch (IOException ignore) {
                                 }
                                 break;
+                            case ("/DOWNLOAD"):
+                                try {
+                                    writer.println("Enter the path to your file");
+                                    String clientMessage = input.readLine();
+
+                                    System.out.println("Client [" + clientName + "] has requested file: " + clientMessage);
+                                    sendFile(clientMessage, output);
+
+                                } catch (IOException ignore) {
+                                }
+                                break;
                             default:
-                                out.println("Error: " + rawClientInput + " is not a valid command");
+                                writer.println("Error: " + rawClientInput + " is not a valid command");
 
                         }
                     } else {
-                        out.println("Error: " + rawClientInput + " is not a valid command");
+                        writer.println("Error: " + rawClientInput + " is not a valid command");
                     }
                 }
 
@@ -94,6 +106,21 @@ public class ServerClientHandler extends Thread {
 
     }
 
-    private void sendMessage(String message, ChatHandler chatHandler) {
+    private void sendFile(String fileName, OutputStream out) throws IOException {
+        File file = new File("ServerFiles");
+
+        if (file.exists()){
+            try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                while ((bytesRead = bis.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                out.flush();
+                System.out.println("File [" + fileName + "] has been sent to the client");
+
+            }
+        }
     }
 }
