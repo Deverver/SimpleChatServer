@@ -88,7 +88,7 @@ public class ServerClientHandler extends Thread {
                                 String clientMessage = input.readLine();
 
                                 System.out.println("Client [" + clientName + "] has requested file: " + clientMessage);
-                                sendFile(clientMessage, output);
+                                sendFile(clientMessage, output, writer);
 
                             } catch (IOException ignore) {
                             }
@@ -114,7 +114,7 @@ public class ServerClientHandler extends Thread {
 
     }
 
-    private void sendFile(String fileName, OutputStream out) throws IOException {
+    private void sendFile(String fileName, OutputStream out, PrintWriter writer) throws IOException {
         File file = new File("ServerFiles/" + fileName);
 
         if (file.exists()) {
@@ -126,11 +126,11 @@ public class ServerClientHandler extends Thread {
                     out.write(buffer, 0, bytesRead);
                 }
                 out.flush();
+                writer.println("File [" + fileName + "] has been sent to the client");
                 System.out.println("File [" + fileName + "] has been sent to the client");
             }
 
         } else {
-            PrintWriter writer = new PrintWriter(out, true);
             writer.println("Error: File not found [" + fileName + "] does not exist");
             System.out.println("Error: File not found [" + fileName + "] does not exist");
         }
