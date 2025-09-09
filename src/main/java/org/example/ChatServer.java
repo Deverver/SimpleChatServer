@@ -8,6 +8,7 @@ import java.net.*;
 
 public class ChatServer {
     private final static int PORT = 6666;
+    private static final String serverDir = "ServerFiles";
 
     public static void main(String[] args) {
         System.out.println("[Server Booting]");
@@ -21,21 +22,21 @@ public class ChatServer {
             chatHandler.start();
             System.out.println("[Chat service started]");
 
-            // Makes a File on the Server, ensures that the file does exist.
-            File dir = new File("ServerFiles");
+            // Makes a Directory on the Server, ensures that the file does exist.
+            File dir = new File(serverDir);
             if (!dir.exists()){
                 dir.mkdir();
             }
 
 
             while (true) {
-                // Accept clients connection.
+                // Accept Clients Connection.
                 Socket socket = serverSocket.accept();
                 System.out.println("New client connected at: " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
 
                 // Handles the connection and creates threads with access to the chatHandler
-                ServerClientHandler serverClientHandler = new ServerClientHandler(socket, chatHandler);
-                serverClientHandler.start();
+                new ServerClientHandler(socket, chatHandler, serverDir).start();
+
             }
 
 

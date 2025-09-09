@@ -50,6 +50,7 @@ public class ChatHandler extends Thread {
     public int indexOfChat(){
         return chatHistory.lastIndexOf(chatHistory);
     }
+
     public String updateChat(int latestRead){
         return chatHistory.get(latestRead + 1);
 
