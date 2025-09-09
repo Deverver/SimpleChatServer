@@ -166,10 +166,10 @@ public class ServerClientHandler extends Thread {
 
     /**
      * For some god-forsaken reason using the standard BufferedOutputStream with byte[], -
-     * - does not read the actual content of the files we are trying to download Sends a file to the client
+     * - does not read the actual content of the files we are trying to download
      *
-     *
-     *
+     * However newer versions of Java allows DataOutputStreams to "transferTo()" which does exactly what we need,
+     * We can simply pass data from the read stream to the output stream with no data loss.
      *  **/
 
     private void sendFile(File file, OutputStream out) throws IOException {
