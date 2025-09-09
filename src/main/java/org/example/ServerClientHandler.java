@@ -84,7 +84,7 @@ public class ServerClientHandler extends Thread {
                             break;
                         case ("/DOWNLOAD"):
                             try {
-                                writer.println("Enter the path to your file");
+                                writer.println("Enter the name of the file you wish to download: ");
                                 String clientMessage = input.readLine();
 
                                 System.out.println("Client [" + clientName + "] has requested file: " + clientMessage);
@@ -115,7 +115,7 @@ public class ServerClientHandler extends Thread {
     }
 
     private void sendFile(String fileName, OutputStream out) throws IOException {
-        File file = new File("ServerFiles");
+        File file = new File("ServerFiles/" + fileName);
 
         if (file.exists()) {
             try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
