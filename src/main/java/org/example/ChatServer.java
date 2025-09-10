@@ -5,6 +5,7 @@ import org.w3c.dom.ls.LSOutput;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalDateTime;
 
 public class ChatServer {
     private final static int PORT = 6666;
@@ -21,6 +22,7 @@ public class ChatServer {
             ChatHandler chatHandler = new ChatHandler();
             chatHandler.start();
             System.out.println("[Chat service started]");
+            chatHandler.receiveMessage("Chat service started at: " + LocalDateTime.now() + "");
 
             // Makes a Directory on the Server, ensures that the file does exist.
             File dir = new File(serverDir);

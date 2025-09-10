@@ -21,37 +21,42 @@ public class ChatHandler extends Thread {
 
         while (true){
 
-
-
+            // evt. fremtidig logik (fx periodisk broadcast)
+            // Sleeper thread så den ikke looper
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {}
 
         }
     }
 
 
 
-    public void receiveMessage(String message) throws IOException {
+    public synchronized void receiveMessage(String message) throws IOException {
         chatHistory.add(message);
     }
 
     public String getChatHistory() {
-        String historyMessages = "";
-        for (String msg : chatHistory) {
-            historyMessages += msg + "\n";
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (String chatMessage : chatHistory) {
+            stringBuilder.append(chatMessage).append("\n");
         }
-        return historyMessages;
+        return stringBuilder.toString();
     }
 
-    public void broadcastMessage(String message, PrintWriter out){
-        String broadcastMsg = "";
-        broadcastMsg = chatHistory.getLast();
-        out.println(broadcastMsg);
+    public synchronized void broadcastMessage(String message, PrintWriter out){
+        if (chatHistory.isEmpty()) return;
+        String chatBroadcast = chatHistory.get(chatHistory.size() - 1);
+        out.println(chatBroadcast);
 
     }
-    public int indexOfChat(){
-        return chatHistory.lastIndexOf(chatHistory);
+
+    public synchronized int indexOfChat(){
+        return (chatHistory.size() - 1);
     }
 
-    public String updateChat(int latestRead){
+    public synchronized String updateChat(int latestRead){
         return chatHistory.get(latestRead + 1);
 
     }
