@@ -29,14 +29,15 @@ public class ServerClientHandler extends Thread {
     @Override
     public void run() {
         try (
-                InputStream input = socket.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                // Raw I/O Data
+                InputStream rawInput = socket.getInputStream();
+                OutputStream rawOutput = socket.getOutputStream();
+
+                //
+                BufferedReader reader = new BufferedReader(new InputStreamReader(rawInput));
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(rawOutput), true)
 
 
-                // We have to separate our OutputStream and our PrintWriter
-                // Since raw data "bytes" cannot be sent via the Writer
-                OutputStream output = socket.getOutputStream();
-                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output), true)
         ) {
             int latestRead = chatHandler.indexOfChat();
 
@@ -52,14 +53,8 @@ public class ServerClientHandler extends Thread {
             System.out.println("User [" + clientName + "] has connected to the server");
 
             // Sending commandsList to Client
-            toClient = "You can now send Commands! ";
-            String appendedString = "Commands Available:";
-            for (String command : commandsList) {
-                appendedString += (" " + command + ",");
-            }
-
-            toClient += appendedString;
-
+            // Now utilising String.join, instead of doing manual appends
+            toClient = "You can now send Commands! Commands Available: " + String.join(", ", commandsList);
             writer.println(toClient);
 
             /*
@@ -67,89 +62,92 @@ public class ServerClientHandler extends Thread {
             writer.println(chatHandler.getChatHistory());
             */
 
-            // Ensures that the client reader is not null and is uniform
-            String rawClientInput = "";
+            // Ensures that the client reader is not null and is trimmed
+            String rawClientInput;
             while ((rawClientInput = reader.readLine()) != null) {
-                String clientInput = rawClientInput.toUpperCase().trim();
+                String clientInput = rawClientInput.trim();
 
                 // Makes sure that the reader is not empty and less than 255 characters
-                if (clientInput.length() > 0 && clientInput.length() < 255) {
+                // Now features the shorter more correct if-statement in loop
+                if (clientInput.isEmpty() || clientInput.length() >= 255) {
+                    writer.println("Error: " + rawClientInput + " is not a valid command");
+                    continue;
+                }
 
-                    switch (clientInput) {
-                        case ("/EXIT"):
-                            try {
-                                System.out.println("Hello");
-                                socket.close();
-                            } catch (IOException ignore) {
-                            }
-                            break;
+                // Parses the client input uppercase to ensure uniform command prompts
+                switch (clientInput) {
+                    case ("/EXIT"):
+                        try {
+                            System.out.println("Hello");
+                            socket.close();
+                        } catch (IOException ignore) {
+                        }
+                        break;
 
-                        case ("/HELP"):
-                            try {
-                                writer.println(commandsList.toString());
-                            } catch (Exception ignore) {
-                            }
-                            break;
+                    case ("/HELP"):
+                        try {
+                            writer.println(commandsList.toString());
+                        } catch (Exception ignore) {
+                        }
+                        break;
 
-                        case ("/SEND"):
-                            try {
-                                toClient = "Ready to receive message";
-                                writer.println(toClient);
-                                String clientMessage = reader.readLine();
+                    case ("/SEND"):
+                        try {
+                            toClient = "Ready to receive message";
+                            writer.println(toClient);
+                            String clientMessage = reader.readLine();
 
-                                chatHandler.receiveMessage(clientName + ": " + clientMessage + " send at: " + LocalDateTime.now());
+                            chatHandler.receiveMessage(clientName + ": " + clientMessage + " send at: " + LocalDateTime.now());
 
 
-                                writer.println(chatHandler.updateChat(latestRead));
-                                latestRead = chatHandler.indexOfChat();
+                            writer.println(chatHandler.updateChat(latestRead));
+                            latestRead = chatHandler.indexOfChat();
 
-                            } catch (IOException ignore) {
-                            }
-                            break;
-                        case ("/DOWNLOAD"):
-                            System.out.println("you got here");
-                            try {
-                                // Asks for file name
-                                toClient = "Enter the name of the file you wish to download: ";
-                                writer.println(toClient);
+                        } catch (IOException ignore) {
+                        }
+                        break;
+                    case ("/DOWNLOAD"):
+                        System.out.println("you got here");
+                        try {
+                            // Asks for file name
+                            toClient = "Enter the name of the file you wish to download: ";
+                            writer.println(toClient);
 
-                                // Gets user input
-                                String clientMessage = reader.readLine();
+                            // Gets user input
+                            String clientMessage = reader.readLine();
 
-                                // Sets fileName to equal clientMessage
-                                String fileName = clientMessage;
+                            // Sets fileName to equal clientMessage
+                            String fileName = clientMessage;
 
-                                File file = new File(serverDir + "/" + fileName);
+                            File file = new File(serverDir + "/" + fileName);
 
-                                if (file.exists()) {
-                                    System.out.println("Client [" + clientName + "] has requested file: " + fileName);
+                            if (file.exists()) {
+                                System.out.println("Client [" + clientName + "] has requested file: " + fileName);
 
-                                    writer.println("Download Is Ready" + " do you want to download?" + "[yes/no]");
-                                    clientMessage = reader.readLine();
+                                writer.println("Download Is Ready" + " do you want to download?" + "[yes/no]");
+                                clientMessage = reader.readLine();
 
-                                    if (clientMessage.equals("yes")) {
-                                        sendFile(file, output);
-                                        System.out.println("File [" + fileName + "] has been sent");
-                                        writer.println("File [" + fileName + "] has been sent");
-                                    } else if (clientMessage.equals("no")) {
-                                        writer.println("Download Cancelled");
-                                    }
-
-                                } else {
-                                    writer.println("Error: File not found [" + fileName + "] does not exist");
-                                    System.out.println("Error: File not found [" + fileName + "] does not exist");
+                                if (clientMessage.equals("yes")) {
+                                    sendFile(file, rawOutput);
+                                    System.out.println("File [" + fileName + "] has been sent");
+                                    writer.println("File [" + fileName + "] has been sent");
+                                } else if (clientMessage.equals("no")) {
+                                    writer.println("Download Cancelled");
                                 }
 
-                            } catch (IOException ignore) {
+                            } else {
+                                writer.println("Error: File not found [" + fileName + "] does not exist");
+                                System.out.println("Error: File not found [" + fileName + "] does not exist");
                             }
-                            break;
-                        default:
-                            writer.println("Error: " + rawClientInput + " is not a valid command");
 
-                    }
-                } else {
-                    writer.println("Error: " + rawClientInput + " is not a valid command");
+                        } catch (IOException ignore) {
+                        }
+                        break;
+                    default:
+                        writer.println("Error: " + rawClientInput + " is not a valid command");
+
                 }
+
             }
 
         } catch (IOException ex) {
@@ -167,10 +165,10 @@ public class ServerClientHandler extends Thread {
     /**
      * For some god-forsaken reason using the standard BufferedOutputStream with byte[], -
      * - does not read the actual content of the files we are trying to download
-     *
+     * <p>
      * However newer versions of Java allows DataOutputStreams to "transferTo()" which does exactly what we need,
      * We can simply pass data from the read stream to the output stream with no data loss.
-     *  **/
+     **/
 
     private void sendFile(File file, OutputStream out) throws IOException {
         if (file.exists()) {
@@ -182,7 +180,6 @@ public class ServerClientHandler extends Thread {
             }
         }
     }
-
 
 
 }
