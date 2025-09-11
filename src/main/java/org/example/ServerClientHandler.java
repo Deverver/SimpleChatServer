@@ -49,7 +49,7 @@ public class ServerClientHandler extends Thread {
             System.out.println("User [" + clientName + "] has connected to the server");
 
             // Sending commandsList to Client; Now utilizing String.join, instead of doing manual appends
-            writer.println("You can now send Commands! Commands Available: " + String.join(", ", commandsList));
+            writer.println("You can now send Commands! Available Commands: " + String.join(", ", commandsList));
 
             /*
             Has to be a command to see chat history
@@ -153,6 +153,27 @@ public class ServerClientHandler extends Thread {
                         // Asks for ChatRoom name
                         writer.println("What is the name-id of the chat you wish to join?");
                         String chatRoomID = reader.readLine();
+
+                        if (!chatHandler.chatExists(chatRoomID)) {
+                            writer.println("ERROR: Chat does not exist: " + chatRoomID);
+                            break;
+                        }
+
+                        writer.println("Chat found, do you still wish to join? [yes/no]");
+                        String accept = reader.readLine();
+
+                        // Handles responses from the client
+                        if (!"yes".equalsIgnoreCase(accept)) {
+                            writer.println("Join Cancelled");
+                            break;
+                        }
+
+
+
+
+                        chatHandler.readChatByID(chatRoomID);
+
+
 
                         break;
                     } // Join End
