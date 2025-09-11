@@ -1,5 +1,6 @@
 package org.example;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -7,14 +8,24 @@ import java.util.ArrayList;
 public class ChatHandler extends Thread {
 
     public static ArrayList<String> chatHistory = new ArrayList<>();
+    public static String serverDIR;
+    public static String chatDIR = "/ChatFiles";
     public static int latestSent;
 
-    public ChatHandler(){
+    public ChatHandler(String serverDir) {
         super("chatHandler");
+        serverDIR = serverDir;
     }
 
     @Override
     public void run(){
+        // Create a history Dir inside the servers files
+        String chatHistoryPath = serverDIR + chatDIR;
+        File dir = new File(chatHistoryPath);
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+
         System.out.println("chatHandler Booting");
         latestSent = chatHistory.size();
 

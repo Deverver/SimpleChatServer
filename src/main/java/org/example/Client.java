@@ -144,6 +144,22 @@ public class Client {
 
                 } // Download Command
 
+
+                if ("/JOIN".equals(clientInput)) {
+                    serverWriter.println("/JOIN");
+
+                    serverMessage = serverReader.readLine();
+                    System.out.println("Server: " + serverMessage);
+                } // Join Command
+
+                if ("/CLEAR".equals(clientInput)) {
+                    serverWriter.println("/CLEAR");
+
+                    serverMessage = serverReader.readLine();
+                    System.out.println("Server: " + serverMessage);
+                } // Clear Command
+
+
                 /*
                 // This should not be necessary as the loop starts with a prompt for input >...
                 // If any command cases are not met, then send input to the server and await responsea

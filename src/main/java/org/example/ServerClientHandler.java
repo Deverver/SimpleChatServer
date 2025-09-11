@@ -12,8 +12,10 @@ public class ServerClientHandler extends Thread {
     private final String serverDir;
     private final List<String> commandsList = List.of(
             "/EXIT",
+            "/HELP",
             "/SEND",
-            "/DOWNLOAD"
+            "/DOWNLOAD",
+            "/JOIN"
     );
 
     private String clientName;
@@ -70,8 +72,10 @@ public class ServerClientHandler extends Thread {
                 switch (clientInput.toUpperCase()) {
 
                     case ("/EXIT"): {
-                        try { socket.close();
-                        } catch (IOException ignore) {}
+                        try {
+                            socket.close();
+                        } catch (IOException ignore) {
+                        }
                         return;
                     } // Exit End
 
@@ -88,7 +92,7 @@ public class ServerClientHandler extends Thread {
 
                         if (userChatMessage == null) break;
 
-                        chatHandler.receiveMessage(clientName + ": " + userChatMessage + " sent at: " + LocalDateTime.now());
+                        chatHandler.receiveMessage(clientName + " wrote: " + userChatMessage + " sent at: " + LocalDateTime.now());
 
                         String updated = chatHandler.updateChat(latestRead);
                         writer.println(updated);
@@ -145,8 +149,23 @@ public class ServerClientHandler extends Thread {
 
                     } // Download End
 
-                    default:
+                    case ("/JOIN"): {
+                        // Asks for ChatRoom name
+                        writer.println("What is the name-id of the chat you wish to join?");
+                        String chatRoomID = reader.readLine();
+
+                        break;
+                    } // Join End
+
+                    case ("/CLEAR"): {
+
+
+                        break;
+                    } // Clear End
+
+                    default: {
                         writer.println("Error: " + rawClientInput + " is not a valid command");
+                    }
                 }
             }
 

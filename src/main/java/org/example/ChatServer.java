@@ -19,9 +19,9 @@ public class ChatServer {
             System.out.println("Server listening on port " + PORT);
 
             // Creates a chatHandler for the server.
-            ChatHandler chatHandler = new ChatHandler();
+            ChatHandler chatHandler = new ChatHandler(serverDir);
             chatHandler.start();
-            System.out.println("[Chat service started]");
+            System.out.println("[Chat Service] booted");
             chatHandler.receiveMessage("Chat service started at: " + LocalDateTime.now() + "");
 
             // Makes a Directory on the Server, ensures that the file does exist.
